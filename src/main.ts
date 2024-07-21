@@ -1,5 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import express from 'express';
+import cors from 'cors';
+import morgan from 'morgan';
 
 import { AppModule } from './main.module';
 import { ValidationPipe } from './common/pipes';
@@ -15,6 +18,13 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  await app.listen(3000);
+  app.use(cors());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(morgan('dev'));
+
+  app.setGlobalPrefix('/api');
+
+  await app.listen(configService.get<string>('PORT'));
 }
 bootstrap();
