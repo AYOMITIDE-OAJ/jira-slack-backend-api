@@ -43,7 +43,7 @@ export class SlackService {
     }
   }
 
-  async getChannelId(channelName: string): Promise<string> {
+  private async getChannelId(channelName: string): Promise<string> {
     const response = await axios.get(
       'https://slack.com/api/conversations.list',
       {
@@ -67,12 +67,15 @@ export class SlackService {
     return channel.id;
   }
 
-  async fetchSlackMessages() {
+  async fetchSlackMessages(channelName: string) {
+    const channelId = await this.getChannelId(channelName);
+
     try {
       const response = await axios.get(
         'https://slack.com/api/conversations.history',
         {
           headers: { Authorization: `Bearer ${this.slackApiToken}` },
+          params: { channel: channelId },
         },
       );
 
