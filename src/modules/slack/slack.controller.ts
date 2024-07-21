@@ -26,4 +26,15 @@ export class SlackController {
       status: HttpStatus.OK,
     };
   }
+
+  @Get('messages')
+  async getAllSlackMessages() {
+    const res = this.slackService.fetchAllSlackMessages();
+
+    return {
+      data: res,
+      message: 'All Channels Fetched Successfully',
+      status: HttpStatus.OK,
+    };
+  }
 }

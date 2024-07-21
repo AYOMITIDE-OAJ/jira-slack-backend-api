@@ -6,6 +6,7 @@ import { JiraModule } from './modules/jira/jira.module';
 import { SlackModule } from './modules/slack/slack.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
+import { createDataSource } from './connection/data-source';
 
 @Module({
   imports: [
@@ -16,16 +17,10 @@ import { AppController } from './app.controller';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('DATABASE_HOST'),
-        port: configService.get<number>('DATABASE_PORT'),
-        username: configService.get<string>('DATABASE_USER'),
-        password: configService.get<string>('DATABASE_PASS'),
-        database: configService.get<string>('DATABASE_NAME'),
-        entities: [SlackMessage, JiraIssue],
-        synchronize: true,
-      }),
+      useFactory: (configService: ConfigService) => {
+        const dataSource = createDataSource(configService);
+        return dataSource.options;
+      },
     }),
     JiraModule,
     SlackModule,

@@ -1,16 +1,17 @@
-import { Controller, Get, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Controller, Get, HttpStatus, OnModuleInit } from '@nestjs/common';
+import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
+import { Connection, Repository } from 'typeorm';
 import { JiraIssue } from './modules/jira/entities';
 import { SlackMessage } from './modules/slack/entities';
 
 @Controller()
-export class AppController {
+export class AppController implements OnModuleInit {
   constructor(
     @InjectRepository(SlackMessage)
     private slackMessageRepository: Repository<SlackMessage>,
     @InjectRepository(JiraIssue)
     private jiraIssueRepository: Repository<JiraIssue>,
+    @InjectConnection() private readonly connection: Connection,
   ) {}
 
   @Get('patterns')
@@ -37,5 +38,14 @@ export class AppController {
       message: 'Pattern fetched successfully',
       status: HttpStatus.OK,
     };
+  }
+
+  async onModuleInit() {
+    try {
+      await this.connection.query('SELECT 1'); // A simple query to check connection
+      console.log('Database connection is successful.');
+    } catch (error) {
+      console.error('Database connection failed:', error);
+    }
   }
 }

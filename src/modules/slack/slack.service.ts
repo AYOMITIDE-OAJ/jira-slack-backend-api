@@ -69,6 +69,7 @@ export class SlackService {
 
   async fetchSlackMessages(channelName: string) {
     const channelId = await this.getChannelId(channelName);
+    this.logger.log('[channelId]:', channelId);
 
     try {
       const response = await axios.get(
@@ -89,10 +90,15 @@ export class SlackService {
           message: message.text,
           timestamp: new Date(parseFloat(message.ts) * 1000),
         });
-        await this.slackMessageRepository.save(slackMessage);
+        const savedMsg = await this.slackMessageRepository.save(slackMessage);
+        this.logger.log('savedMessg', savedMsg.message);
       }
     } catch (error) {
       ErrorHelper.BadRequestException(error);
     }
+  }
+
+  async fetchAllSlackMessages(): Promise<SlackMessage[]> {
+    return await this.slackMessageRepository.find({});
   }
 }
