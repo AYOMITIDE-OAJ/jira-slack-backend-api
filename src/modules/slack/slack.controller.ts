@@ -15,4 +15,15 @@ export class SlackController {
       status: HttpStatus.OK,
     };
   }
+
+  @Get('fetch-channels')
+  async fetchAllChannels() {
+    const res = await this.slackService.fetchAllChannels();
+
+    return {
+      data: res,
+      message: 'All Channels Fetched Successfully',
+      status: HttpStatus.OK,
+    };
+  }
 }
