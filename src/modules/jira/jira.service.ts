@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 
 import { JiraIssue } from './entities';
 import { Repository } from 'typeorm';
+import { ErrorHelper } from 'src/helpers/error.utils';
 
 @Injectable()
 export class JiraService {
@@ -34,6 +35,8 @@ export class JiraService {
         });
         await this.jiraIssueRepository.save(jiraIssue);
       }
-    } catch (error) {}
+    } catch (error) {
+      ErrorHelper.BadRequestException(error);
+    }
   }
 }
