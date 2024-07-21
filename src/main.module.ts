@@ -5,6 +5,7 @@ import { JiraIssue } from './modules/jira/entities';
 import { JiraModule } from './modules/jira/jira.module';
 import { SlackModule } from './modules/slack/slack.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     JiraModule,
     SlackModule,
   ],
-  controllers: [],
   providers: [],
+  controllers: [AppController],
 })
 export class AppModule {}
