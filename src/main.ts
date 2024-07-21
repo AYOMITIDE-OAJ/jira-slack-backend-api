@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
-import express from 'express';
-import cors from 'cors';
-import morgan from 'morgan';
+import * as express from 'express';
+import * as cors from 'cors';
+import * as morgan from 'morgan';
 
 import { AppModule } from './main.module';
 import { ValidationPipe } from './common/pipes';
