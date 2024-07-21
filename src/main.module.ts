@@ -1,5 +1,9 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SlackMessage } from './modules/slack/entities';
+import { JiraIssue } from './modules/jira/entities';
+import { JiraModule } from './modules/jira/jira.module';
+import { SlackModule } from './modules/slack/slack.module';
 
 @Module({
   imports: [
@@ -10,9 +14,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       username: 'your_user',
       password: 'your_password',
       database: 'data_integration',
-      // entities: [SlackMessage, JiraIssue],
+      entities: [SlackMessage, JiraIssue],
       synchronize: true,
     }),
+    JiraModule,
+    SlackModule,
   ],
   controllers: [],
   providers: [],
