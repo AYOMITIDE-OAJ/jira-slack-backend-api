@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JiraController } from './jira.controller';
+import { JiraController } from '../jira.controller';
 
 describe('JiraController', () => {
   let controller: JiraController;

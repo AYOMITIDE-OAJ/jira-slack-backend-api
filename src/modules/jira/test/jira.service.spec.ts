@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JiraService } from './jira.service';
+import { JiraService } from '../jira.service';
 
 describe('JiraService', () => {
   let service: JiraService;
