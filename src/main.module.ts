@@ -9,6 +9,7 @@ import { AppController } from './app.controller';
 
 @Module({
   imports: [
+    TypeOrmModule.forFeature([SlackMessage, JiraIssue]),
     ConfigModule.forRoot({
       isGlobal: true,
     }),

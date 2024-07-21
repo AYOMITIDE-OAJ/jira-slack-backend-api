@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SlackService } from './slack.service';
+import { SlackService } from '../slack.service';
 
 describe('SlackService', () => {
   let service: SlackService;

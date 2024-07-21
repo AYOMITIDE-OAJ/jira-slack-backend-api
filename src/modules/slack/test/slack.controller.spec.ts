@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { SlackController } from './slack.controller';
+import { SlackController } from '../slack.controller';
 
 describe('SlackController', () => {
   let controller: SlackController;

@@ -2,9 +2,12 @@
   "name": "jira-slack-svc",
   "version": "0.0.1",
   "description": "",
-  "author": "Ogbu Ezekiel",
   "private": true,
   "license": "UNLICENSED",
+  "author": {
+    "name": "Ogbu Ezekiel",
+    "email": "zicozydasilva70@gmail.com"
+  },
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -20,8 +23,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nestjs/common": "^10.3.10",
-    "@nestjs/core": "^10.0.0",
+    "@nestjs/common": "9.0.11",
+    "@nestjs/config": "^3.2.3",
+    "@nestjs/core": "9.0.11",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/typeorm": "^10.0.2",
     "axios": "^1.7.2",
