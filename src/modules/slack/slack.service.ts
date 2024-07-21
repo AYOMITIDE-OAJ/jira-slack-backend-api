@@ -5,20 +5,24 @@ import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SlackMessage } from './entities';
 import { ErrorHelper } from 'src/helpers/error.utils';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SlackService {
   constructor(
     @InjectRepository(SlackMessage)
     private slackMessageRepository: Repository<SlackMessage>,
+    private configService: ConfigService,
   ) {}
 
   async fetchSlackMessages() {
+    const slackApiToken = this.configService.get<string>('SLACK_API_TOKEN');
+
     try {
       const response = await axios.get(
         'https://slack.com/api/conversations.history',
         {
-          headers: { Authorization: `Bearer ${process.env.SLACK_API_TOKEN}` },
+          headers: { Authorization: `Bearer ${slackApiToken}` },
         },
       );
 
