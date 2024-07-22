@@ -70,7 +70,6 @@ export class SlackService {
 
   async fetchSlackMessages(channelName: string) {
     const channelId = await this.getChannelId(channelName);
-    this.logger.log('[channelId]:', channelId);
 
     try {
       const response = await axios.get(
@@ -117,7 +116,7 @@ export class SlackService {
   @Cron(CronExpression.EVERY_10_MINUTES) // ensuring slack messages syncs every 10 minutes interval
   async handleCronSyncSlackMessages() {
     await this.fetchSlackMessages('random'); // channel name - random | general
-    this.logger.log('[handleCronSyncSlackMessages]:: TRIGGED');
+    this.logger.log('[handleCronSyncSlackMessages]:: TRIGGERED');
   }
 
   async fetchAllSlackMessages() {
