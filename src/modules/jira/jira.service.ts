@@ -59,4 +59,8 @@ export class JiraService {
       ErrorHelper.BadRequestException(error);
     }
   }
+
+  async fetchAllJiraIssues() {
+    return await this.jiraIssueRepository.find();
+  }
 }

@@ -1,51 +1,65 @@
-import { Controller, Get, HttpStatus, OnModuleInit } from '@nestjs/common';
-import { InjectConnection, InjectRepository } from '@nestjs/typeorm';
-import { Connection, Repository } from 'typeorm';
+import { Controller, Get, HttpStatus, Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { JiraIssue } from './modules/jira/entities';
 import { SlackMessage } from './modules/slack/entities';
 
-@Controller()
-export class AppController implements OnModuleInit {
+@Controller('jira-slack/')
+export class AppController {
+  private logger = new Logger(AppController.name);
   constructor(
     @InjectRepository(SlackMessage)
     private slackMessageRepository: Repository<SlackMessage>,
     @InjectRepository(JiraIssue)
     private jiraIssueRepository: Repository<JiraIssue>,
-    @InjectConnection() private readonly connection: Connection,
   ) {}
 
-  @Get('patterns')
+  @Get('analytic-patterns')
   async getPatterns() {
-    const slackMessages = await this.slackMessageRepository
-      .createQueryBuilder('message')
-      .where('message.message LIKE :searchTerm', { searchTerm: '%JIRA-%' })
-      .getMany();
-
+    // Fetch all Jira issues & slack messages
     const jiraIssues = await this.jiraIssueRepository.find();
+    const slackMsgs = await this.slackMessageRepository.find();
 
-    const patterns = slackMessages.map((message) => {
-      const mentionedIssues = message.message.match(/JIRA-\d+/g) || [];
+    // Initialize a map to keep track of issue mentions
+    const issueMentionCount = new Map<string, number>();
+
+    // Map Slack messages to find mentioned Jira issues by summary
+    const patterns = slackMsgs.map((message) => {
+      const mentionedIssues = jiraIssues.filter((issue) =>
+        message.message.toLowerCase().includes(issue.summary.toLowerCase()),
+      );
+
+      // Increment mention count for each mentioned issue
+      mentionedIssues.forEach((issue) => {
+        const count = issueMentionCount.get(issue.summary) || 0;
+        issueMentionCount.set(issue.summary, count + 1);
+      });
+
       return {
         ...message,
-        mentionedIssues: mentionedIssues.filter((issueId) =>
-          jiraIssues.some((issue) => issue.issueId === issueId),
-        ),
+        mentionedIssues: mentionedIssues.map((issue) => issue.summary),
       };
     });
 
+    // Convert the map to an array for easier use in a chart
+    const issueMentionData = Array.from(issueMentionCount.entries()).map(
+      ([issue, count]) => ({
+        issue,
+        count,
+      }),
+    );
+
+    this.logger.log('patterns', patterns);
+    this.logger.log('issueMentionData', issueMentionData);
+
+    // Return structured response with detailed analytics
     return {
-      data: patterns,
+      data: {
+        patterns,
+        issueMentionData,
+      },
       message: 'Pattern fetched successfully',
       status: HttpStatus.OK,
     };
-  }
-
-  async onModuleInit() {
-    try {
-      await this.connection.query('SELECT 1'); // A simple query to check connection
-      console.log('Database connection is successful.');
-    } catch (error) {
-      console.error('Database connection failed:', error);
-    }
   }
 }

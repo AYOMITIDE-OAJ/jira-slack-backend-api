@@ -15,4 +15,15 @@ export class JiraController {
       status: HttpStatus.OK,
     };
   }
+
+  @Get('issues')
+  async getAllSlackMessages() {
+    const res = await this.jiraService.fetchAllJiraIssues();
+
+    return {
+      data: res,
+      message: 'All Jira Issues Fetched Successfully',
+      status: HttpStatus.OK,
+    };
+  }
 }
