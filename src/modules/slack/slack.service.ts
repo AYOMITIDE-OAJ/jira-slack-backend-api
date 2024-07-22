@@ -113,13 +113,45 @@ export class SlackService {
     }
   }
 
-  @Cron(CronExpression.EVERY_10_MINUTES) // ensuring slack messages syncs every 10 minutes interval
+  @Cron(CronExpression.EVERY_MINUTE) // ensuring slack messages syncs every minute interval
   async handleCronSyncSlackMessages() {
-    await this.fetchSlackMessages('random'); // channel name - random | general
+    await this.fetchSlackMessages('random'); // channel name - random | general etc
     this.logger.log('[handleCronSyncSlackMessages]:: TRIGGERED');
   }
 
   async fetchAllSlackMessages() {
     return await this.slackMessageRepository.find();
+  }
+
+  // handler to enable dashboard default user send message to slack channel via dashboard API
+  async sendMessageToSlackChannel(
+    channelName: string,
+    message: string,
+  ): Promise<void> {
+    try {
+      const channelId = await this.getChannelId(channelName);
+
+      const response = await axios.post(
+        'https://slack.com/api/chat.postMessage',
+        {
+          channel: channelId,
+          text: message,
+        },
+        {
+          headers: { Authorization: `Bearer ${this.slackApiToken}` },
+        },
+      );
+
+      if (!response.data.ok) {
+        this.logger.error(`[chat.postMessage] error: ${response.data.error}`);
+        ErrorHelper.BadRequestException(response.data.error);
+      }
+
+      this.logger.log('Message sent successfully:', response.data);
+      return response.data;
+    } catch (error) {
+      this.logger.error('Error sending message to Slack:', error);
+      throw error;
+    }
   }
 }
