@@ -1,11 +1,12 @@
 import axios from 'axios';
+import { ConfigService } from '@nestjs/config';
 import { Injectable, Logger } from '@nestjs/common';
 import { Repository } from 'typeorm';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 import { InjectRepository } from '@nestjs/typeorm';
 import { SlackMessage } from './entities';
 import { ErrorHelper } from 'src/helpers/error.utils';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SlackService {
@@ -111,6 +112,12 @@ export class SlackService {
     } catch (error) {
       ErrorHelper.BadRequestException(error);
     }
+  }
+
+  @Cron(CronExpression.EVERY_10_MINUTES) // ensuring slack messages syncs every 10 minutes interval
+  async handleCronSyncSlackMessages() {
+    await this.fetchSlackMessages('random'); // channel name - random | general
+    this.logger.log('[handleCronSyncSlackMessages]:: TRIGGED');
   }
 
   async fetchAllSlackMessages() {

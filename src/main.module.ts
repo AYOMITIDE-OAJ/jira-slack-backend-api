@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
+
 import { SlackMessage } from './modules/slack/entities';
 import { JiraIssue } from './modules/jira/entities';
 import { JiraModule } from './modules/jira/jira.module';
@@ -10,6 +12,7 @@ import { createDataSource } from './connection/data-source';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     TypeOrmModule.forFeature([SlackMessage, JiraIssue]),
     ConfigModule.forRoot({
       isGlobal: true,
