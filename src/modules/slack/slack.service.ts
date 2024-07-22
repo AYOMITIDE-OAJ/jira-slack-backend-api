@@ -12,6 +12,7 @@ import { ErrorHelper } from 'src/helpers/error.utils';
 export class SlackService {
   private logger = new Logger(SlackService.name);
   private slackApiToken = this.configService.get<string>('SLACK_API_TOKEN');
+  private slackBaseUrl = 'https://slack.com/api';
 
   constructor(
     @InjectRepository(SlackMessage)
@@ -22,7 +23,7 @@ export class SlackService {
   async fetchAllChannels(): Promise<void> {
     try {
       const response = await axios.get(
-        'https://slack.com/api/conversations.list',
+        `${this.slackBaseUrl}/conversations.list`,
         {
           headers: { Authorization: `Bearer ${this.slackApiToken}` },
         },
@@ -46,7 +47,7 @@ export class SlackService {
 
   private async getChannelId(channelName: string): Promise<string> {
     const response = await axios.get(
-      'https://slack.com/api/conversations.list',
+      `${this.slackBaseUrl}/conversations.list`,
       {
         headers: { Authorization: `Bearer ${this.slackApiToken}` },
       },
@@ -73,7 +74,7 @@ export class SlackService {
 
     try {
       const response = await axios.get(
-        'https://slack.com/api/conversations.history',
+        `${this.slackBaseUrl}/conversations.history`,
         {
           headers: { Authorization: `Bearer ${this.slackApiToken}` },
           params: { channel: channelId },
@@ -102,6 +103,7 @@ export class SlackService {
           await this.slackMessageRepository.save(slackMessage);
           return slackMessage;
         } else {
+          // to ensure duplicates aren't saved to database, instead logged out
           this.logger.log(
             `Message already exists in the database: USERID: ${message.user}`,
             message.text,
@@ -115,8 +117,11 @@ export class SlackService {
 
   @Cron(CronExpression.EVERY_MINUTE) // ensuring slack messages syncs every minute interval
   async handleCronSyncSlackMessages() {
-    await this.fetchSlackMessages('random'); // channel name - random | general etc
+    // log to validate cron-job is asynchronously pulling slack activites into database
     this.logger.log('[handleCronSyncSlackMessages]:: TRIGGERED');
+
+    // channel name - random | general etc
+    await this.fetchSlackMessages('random');
   }
 
   async fetchAllSlackMessages() {
@@ -132,7 +137,7 @@ export class SlackService {
       const channelId = await this.getChannelId(channelName);
 
       const response = await axios.post(
-        'https://slack.com/api/chat.postMessage',
+        `${this.slackBaseUrl}/chat.postMessage`,
         {
           channel: channelId,
           text: message,
@@ -146,8 +151,8 @@ export class SlackService {
         this.logger.error(`[chat.postMessage] error: ${response.data.error}`);
         ErrorHelper.BadRequestException(response.data.error);
       }
+      this.logger.log('Message sent successfully:', response.data.message.text);
 
-      this.logger.log('Message sent successfully:', response.data);
       return response.data;
     } catch (error) {
       this.logger.error('Error sending message to Slack:', error);
