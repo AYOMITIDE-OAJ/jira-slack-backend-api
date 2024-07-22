@@ -11,7 +11,7 @@ export class JiraController {
 
     return {
       data: res,
-      message: 'Jira issues fetched and stored',
+      message: 'Jira Issues Fetched And Stored Successfully.',
       status: HttpStatus.OK,
     };
   }
