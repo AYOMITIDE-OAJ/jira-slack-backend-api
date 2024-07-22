@@ -29,7 +29,7 @@ export class SlackController {
 
   @Get('messages')
   async getAllSlackMessages() {
-    const res = this.slackService.fetchAllSlackMessages();
+    const res = await this.slackService.fetchAllSlackMessages();
 
     return {
       data: res,

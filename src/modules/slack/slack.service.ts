@@ -80,25 +80,40 @@ export class SlackService {
         },
       );
 
-      this.logger.log('[response]:', response.data);
-
       const messages = response.data.messages;
 
       for (const message of messages) {
-        const slackMessage = this.slackMessageRepository.create({
-          userId: message.user,
-          message: message.text,
-          timestamp: new Date(parseFloat(message.ts) * 1000),
+        const timestamp = new Date(parseFloat(message.ts) * 1000);
+
+        // Check if the message already exists in the database
+        const existingMessage = await this.slackMessageRepository.findOne({
+          where: {
+            userId: message.user,
+            timestamp: timestamp,
+          },
         });
-        const savedMsg = await this.slackMessageRepository.save(slackMessage);
-        this.logger.log('savedMessg', savedMsg.message);
+
+        if (!existingMessage) {
+          const slackMessage = this.slackMessageRepository.create({
+            userId: message.user,
+            message: message.text,
+            timestamp: timestamp,
+          });
+          await this.slackMessageRepository.save(slackMessage);
+          return slackMessage;
+        } else {
+          this.logger.log(
+            `Message already exists in the database: USERID: ${message.user}`,
+            message.text,
+          );
+        }
       }
     } catch (error) {
       ErrorHelper.BadRequestException(error);
     }
   }
 
-  async fetchAllSlackMessages(): Promise<SlackMessage[]> {
-    return await this.slackMessageRepository.find({});
+  async fetchAllSlackMessages() {
+    return await this.slackMessageRepository.find();
   }
 }
