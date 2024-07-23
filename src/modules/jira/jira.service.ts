@@ -41,7 +41,7 @@ export class JiraService {
         });
 
         if (!existingIssue) {
-          // If the issue does not exist, create and save it
+          // If the issue does not exist, create and save it.
           const jiraIssue = this.jiraIssueRepository.create({
             issueId: issue.id,
             summary: issue.fields.summary,
