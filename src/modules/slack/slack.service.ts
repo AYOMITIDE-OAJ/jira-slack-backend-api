@@ -115,7 +115,7 @@ export class SlackService {
     }
   }
 
-  @Cron(CronExpression.EVERY_MINUTE) // ensuring slack messages syncs every minute interval
+  @Cron(CronExpression.EVERY_5_MINUTES) // ensuring slack messages syncs every 5 minutes interval
   async handleCronSyncSlackMessages() {
     // log to validate cron-job is asynchronously pulling slack activites into database
     this.logger.log('[handleCronSyncSlackMessages]:: TRIGGERED');
