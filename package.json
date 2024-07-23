@@ -35,6 +35,7 @@
     "@types/cors": "^2.8.17",
     "@types/morgan": "^1.9.9",
     "axios": "^1.7.2",
+    "class-validator": "^0.14.1",
     "cors": "^2.8.5",
     "cron-job": "^1.0.3",
     "morgan": "^1.10.0",
