@@ -27,14 +27,9 @@ async function bootstrap() {
 
   app.setGlobalPrefix('/api');
 
-  // await dataSource.initialize();
-  // await app.listen(configService.get<string>('PORT'));
-
   try {
     await dataSource.initialize();
-    console.log('Data Source has been initialized!');
     await app.listen(configService.get<string>('PORT'));
-    console.log('Application is running on port 3000');
   } catch (error) {
     console.error('Error during Data Source initialization:', error);
   }
