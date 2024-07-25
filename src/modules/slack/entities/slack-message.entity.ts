@@ -2,15 +2,21 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class SlackMessage {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
-  userId: string;
+  type: string;
 
-  @Column('text')
-  message: string;
+  @Column()
+  user: string;
 
-  @Column('timestamp')
-  timestamp: Date;
+  @Column()
+  text: string;
+
+  @Column()
+  ts: string;
+
+  @Column({ nullable: true })
+  channel: string;
 }

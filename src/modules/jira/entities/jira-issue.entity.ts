@@ -1,19 +1,44 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Entity, Column, PrimaryColumn } from 'typeorm';
+
+class Status {
+  @Column()
+  name: string;
+}
+
+class Assignee {
+  @Column()
+  displayName: string;
+
+  @Column({ nullable: true })
+  emailAddress: string;
+}
+
+class Priority {
+  @Column()
+  name: string;
+}
 
 @Entity()
 export class JiraIssue {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryColumn()
+  id: string;
 
   @Column()
-  issueId: string;
+  created: Date;
 
-  @Column('text')
+  @Column()
+  updated: Date;
+
+  @Column((type) => Status)
+  status: Status;
+
+  @Column((type) => Assignee)
+  assignee: Assignee;
+
+  @Column((type) => Priority)
+  priority: Priority;
+
+  @Column()
   summary: string;
-
-  @Column()
-  status: string;
-
-  @Column('timestamp')
-  createdAt: Date;
 }

@@ -9,6 +9,7 @@ import { SlackModule } from './modules/slack/slack.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { createDataSource } from './connection/data-source';
+import { SeederService } from './modules/seed/seed.service';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { createDataSource } from './connection/data-source';
     JiraModule,
     SlackModule,
   ],
-  providers: [],
+  providers: [SeederService],
   controllers: [AppController],
 })
 export class AppModule {}

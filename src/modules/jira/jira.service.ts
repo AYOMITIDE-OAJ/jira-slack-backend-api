@@ -6,6 +6,7 @@ import { JiraIssue } from './entities';
 import { Repository } from 'typeorm';
 import { ErrorHelper } from 'src/helpers/error.utils';
 import { ConfigService } from '@nestjs/config';
+import { jiraIssuesData } from '../seed/data/jira';
 
 @Injectable()
 export class JiraService {
@@ -16,6 +17,24 @@ export class JiraService {
     private readonly jiraIssueRepository: Repository<JiraIssue>,
     private configService: ConfigService,
   ) {}
+
+  async fetchAllJiraIssues(summary?: string) {
+    try {
+      const query = this.jiraIssueRepository.createQueryBuilder('issue');
+
+      // Apply search filter for summary
+      if (summary) {
+        query.andWhere('issue.summary LIKE :summary', {
+          summary: `%${summary}%`,
+        });
+      }
+
+      return await query.getMany();
+    } catch (error) {
+      this.logger.log(error);
+      ErrorHelper.BadRequestException(error);
+    }
+  }
 
   async fetchJiraIssues() {
     const jiraEmail = this.configService.get<string>('JIRA_EMAIL');
@@ -34,19 +53,27 @@ export class JiraService {
 
       const issues = response.data.issues;
 
+      // return issues;
+
       for (const issue of issues) {
+        this.logger.log('issues', issues);
         // Check if the issue already exists in the database
         const existingIssue = await this.jiraIssueRepository.findOne({
-          where: { issueId: issue.id },
+          where: { id: issue.id },
         });
 
         if (!existingIssue) {
-          // If the issue does not exist, create and save it.
           const jiraIssue = this.jiraIssueRepository.create({
-            issueId: issue.id,
+            id: issue.id,
+            created: new Date(issue.fields.created),
+            updated: new Date(issue.fields.updated),
+            status: { name: issue.fields.status.name },
+            assignee: {
+              displayName: issue.fields.assignee.displayName,
+              emailAddress: issue.fields.assignee.emailAddress,
+            },
+            priority: { name: issue.fields.priority.name },
             summary: issue.fields.summary,
-            status: issue.fields.status.name,
-            createdAt: new Date(issue.fields.created),
           });
 
           await this.jiraIssueRepository.save(jiraIssue);
@@ -60,7 +87,26 @@ export class JiraService {
     }
   }
 
-  async fetchAllJiraIssues() {
-    return await this.jiraIssueRepository.find();
+  async seedJiraIssues() {
+    this.logger.log('[SEEDING-JIRA] - processing');
+
+    const batchSize = 100; // Define your batch size
+
+    for (let i = 0; i < jiraIssuesData.length; i += batchSize) {
+      const batch = jiraIssuesData.slice(i, i + batchSize);
+
+      const seedPromises = batch.map(async (data) => {
+        const existingIssue = await this.jiraIssueRepository.findOne({
+          where: { id: data.id },
+        });
+        if (!existingIssue) {
+          return this.jiraIssueRepository.save(data);
+        }
+      });
+
+      await Promise.all(seedPromises); // Process the batch concurrently
+    }
+
+    this.logger.log('[SEEDING-JIRA] - done');
   }
 }

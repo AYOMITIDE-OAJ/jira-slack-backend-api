@@ -1,4 +1,12 @@
-import { Body, Controller, Get, HttpStatus, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Param,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { SlackService } from './slack.service';
 
 @Controller('slack')
@@ -27,9 +35,9 @@ export class SlackController {
     };
   }
 
-  @Get('messages')
-  async getAllSlackMessages() {
-    const res = await this.slackService.fetchAllSlackMessages();
+  @Get('fetch-messages')
+  async getAllSlackMessages(@Query('text') text: string) {
+    const res = await this.slackService.fetchAllSlackMessages(text);
 
     return {
       data: res,
@@ -51,6 +59,17 @@ export class SlackController {
     return {
       data: res,
       message: 'Message Sent To Slack Channel Successfully',
+      status: HttpStatus.OK,
+    };
+  }
+
+  @Get('seed-slack-repo')
+  async seedSlackMessages() {
+    const res = await this.slackService.seedSlackMessages();
+
+    return {
+      data: res,
+      message: 'Slack Repo Seeded Successfully',
       status: HttpStatus.OK,
     };
   }

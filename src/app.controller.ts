@@ -26,7 +26,7 @@ export class AppController {
     // Map Slack messages to find mentioned Jira issues by summary
     const patterns = slackMsgs.map((message) => {
       const mentionedIssues = jiraIssues.filter((issue) =>
-        message.message.toLowerCase().includes(issue.summary.toLowerCase()),
+        message.text.toLowerCase().includes(issue.summary.toLowerCase()),
       );
 
       // Increment mention count for each mentioned issue

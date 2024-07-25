@@ -7,6 +7,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SlackMessage } from './entities';
 import { ErrorHelper } from 'src/helpers/error.utils';
+import { slackMessageData } from '../seed/data/slack';
 
 @Injectable()
 export class SlackService {
@@ -84,21 +85,23 @@ export class SlackService {
       const messages = response.data.messages;
 
       for (const message of messages) {
-        const timestamp = new Date(parseFloat(message.ts) * 1000);
+        // const timestamp = new Date(parseFloat(message.ts) * 1000);
 
         // Check if the message already exists in the database
         const existingMessage = await this.slackMessageRepository.findOne({
           where: {
-            userId: message.user,
-            timestamp: timestamp,
+            user: message.user,
+            ts: message.ts,
           },
         });
 
         if (!existingMessage) {
           const slackMessage = this.slackMessageRepository.create({
-            userId: message.user,
-            message: message.text,
-            timestamp: timestamp,
+            type: message.type,
+            user: message.user,
+            text: message.text,
+            ts: message.ts,
+            channel: message.channel,
           });
           await this.slackMessageRepository.save(slackMessage);
           return slackMessage;
@@ -115,17 +118,31 @@ export class SlackService {
     }
   }
 
-  @Cron(CronExpression.EVERY_5_MINUTES) // ensuring slack messages syncs every 5 minutes interval
+  @Cron(CronExpression.EVERY_10_MINUTES) // ensuring slack messages syncs every 5 minutes interval
   async handleCronSyncSlackMessages() {
     // log to validate cron-job is asynchronously pulling slack activites into database
     this.logger.log('[handleCronSyncSlackMessages]:: TRIGGERED');
 
     // channel name - random | general etc
-    await this.fetchSlackMessages('random');
+    // await this.fetchSlackMessages('random');
   }
 
-  async fetchAllSlackMessages() {
-    return await this.slackMessageRepository.find();
+  async fetchAllSlackMessages(text?: string) {
+    try {
+      const query = this.slackMessageRepository.createQueryBuilder('message');
+
+      // Apply search filter for text
+      if (text) {
+        query.andWhere('message.text LIKE :text', {
+          text: `%${text}%`,
+        });
+      }
+
+      return await query.getMany();
+    } catch (error) {
+      this.logger.log(error);
+      ErrorHelper.BadRequestException(error);
+    }
   }
 
   // handler to enable dashboard default user send message to slack channel via dashboard API
@@ -158,5 +175,28 @@ export class SlackService {
       this.logger.error('Error sending message to Slack:', error);
       throw error;
     }
+  }
+
+  async seedSlackMessages() {
+    this.logger.log('[SEEDING-SLACK] - processing');
+
+    const batchSize = 100; // Define your batch size
+    for (let i = 0; i < slackMessageData.length; i += batchSize) {
+      const batch = slackMessageData.slice(i, i + batchSize);
+
+      const seedPromises = batch.map(async (data) => {
+        const existingMessage = await this.slackMessageRepository.findOne({
+          where: { ts: data.ts },
+        });
+        if (!existingMessage) {
+          return this.slackMessageRepository.save(data);
+        }
+      });
+
+      await Promise.all(seedPromises); // Process the batch concurrently
+      this.logger.log('[SEEDING-SLACK] - processing111');
+    }
+
+    this.logger.log('[SEEDING-SLACK] - done');
   }
 }
