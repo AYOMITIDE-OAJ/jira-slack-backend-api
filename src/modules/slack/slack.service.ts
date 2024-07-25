@@ -31,14 +31,11 @@ export class SlackService {
       );
 
       if (!response.data.ok) {
-        this.logger.error(`[conversations.list] error: ${response.data.error}`);
         ErrorHelper.BadRequestException(response.data.error);
       }
 
       const channels = response.data.channels;
       const channelNames = channels.map((channel) => channel.name);
-
-      this.logger.log('Channels:', channelNames);
 
       return channelNames;
     } catch (error) {
@@ -55,7 +52,6 @@ export class SlackService {
     );
 
     if (!response.data.ok) {
-      this.logger.error(`[conversations.list] error: ${response.data.error}`);
       ErrorHelper.BadRequestException(response.data.error);
     }
 
@@ -70,51 +66,105 @@ export class SlackService {
     return channel.id;
   }
 
-  async fetchSlackMessages(channelName: string) {
+  // async fetchSlackMessages(channelName: string) {
+  //   const channelId = await this.getChannelId(channelName);
+
+  //   try {
+  //     const response = await axios.get(
+  //       `${this.slackBaseUrl}/conversations.history`,
+  //       {
+  //         headers: { Authorization: `Bearer ${this.slackApiToken}` },
+  //         params: { channel: channelId },
+  //       },
+  //     );
+
+  //     const messages = response.data.messages;
+
+  //     for (const message of messages) {
+  //       // const timestamp = new Date(parseFloat(message.ts) * 1000);
+
+  //       // Check if the message already exists in the database
+  //       const existingMessage = await this.slackMessageRepository.findOne({
+  //         where: {
+  //           user: message.user,
+  //           ts: message.ts,
+  //         },
+  //       });
+
+  //       if (!existingMessage) {
+  //         const slackMessage = this.slackMessageRepository.create({
+  //           type: message.type,
+  //           user: message.user,
+  //           text: message.text,
+  //           ts: message.ts,
+  //           channel: message.channel,
+  //         });
+  //         await this.slackMessageRepository.save(slackMessage);
+  //         return slackMessage;
+  //       } else {
+  //         // to ensure duplicates aren't saved to database, instead logged out
+  //         this.logger.log(
+  //           `Message already exists in the database: USERID: ${message.user}`,
+  //           message.text,
+  //         );
+  //       }
+  //     }
+  //   } catch (error) {
+  //     ErrorHelper.BadRequestException(error);
+  //   }
+  // }
+
+  async fetchSlackMessages(channelName: string): Promise<void> {
     const channelId = await this.getChannelId(channelName);
+    let hasMore = true;
+    let cursor: string | undefined;
 
-    try {
-      const response = await axios.get(
-        `${this.slackBaseUrl}/conversations.history`,
-        {
-          headers: { Authorization: `Bearer ${this.slackApiToken}` },
-          params: { channel: channelId },
-        },
-      );
-
-      const messages = response.data.messages;
-
-      for (const message of messages) {
-        // const timestamp = new Date(parseFloat(message.ts) * 1000);
-
-        // Check if the message already exists in the database
-        const existingMessage = await this.slackMessageRepository.findOne({
-          where: {
-            user: message.user,
-            ts: message.ts,
+    while (hasMore) {
+      try {
+        const response = await axios.get(
+          `${this.slackBaseUrl}/conversations.history`,
+          {
+            headers: { Authorization: `Bearer ${this.slackApiToken}` },
+            params: {
+              channel: channelId,
+              cursor,
+            },
           },
-        });
+        );
 
-        if (!existingMessage) {
-          const slackMessage = this.slackMessageRepository.create({
-            type: message.type,
-            user: message.user,
-            text: message.text,
-            ts: message.ts,
-            channel: message.channel,
+        const messages = response.data.messages;
+        hasMore = response.data.has_more;
+        cursor = response.data.response_metadata?.next_cursor;
+
+        for (const message of messages) {
+          // Check if the message already exists in the database
+          const existingMessage = await this.slackMessageRepository.findOne({
+            where: {
+              user: message.user,
+              ts: message.ts,
+            },
           });
-          await this.slackMessageRepository.save(slackMessage);
-          return slackMessage;
-        } else {
-          // to ensure duplicates aren't saved to database, instead logged out
-          this.logger.log(
-            `Message already exists in the database: USERID: ${message.user}`,
-            message.text,
-          );
+
+          if (!existingMessage) {
+            const slackMessage = this.slackMessageRepository.create({
+              type: message.type,
+              user: message.user,
+              text: message.text,
+              ts: message.ts,
+              channel: message.channel,
+            });
+            await this.slackMessageRepository.save(slackMessage);
+          } else {
+            this.logger.log(
+              `Message already exists in the database: USERID: ${message.user}`,
+              message.text,
+            );
+          }
         }
+      } catch (error) {
+        this.logger.error('Failed to fetch Slack messages', error.stack);
+        ErrorHelper.BadRequestException('Failed to fetch Slack messages');
       }
-    } catch (error) {
-      ErrorHelper.BadRequestException(error);
     }
   }
 
@@ -165,10 +215,10 @@ export class SlackService {
       );
 
       if (!response.data.ok) {
-        this.logger.error(`[chat.postMessage] error: ${response.data.error}`);
         ErrorHelper.BadRequestException(response.data.error);
       }
       this.logger.log('Message sent successfully:', response.data.message.text);
+      await this.fetchSlackMessages('random'); // can be made flexible
 
       return response.data;
     } catch (error) {
@@ -194,7 +244,7 @@ export class SlackService {
       });
 
       await Promise.all(seedPromises); // Process the batch concurrently
-      this.logger.log('[SEEDING-SLACK] - processing111');
+      this.logger.log('[SEEDING-SLACK] - processing...');
     }
 
     this.logger.log('[SEEDING-SLACK] - done');
