@@ -5,8 +5,8 @@
   "private": true,
   "license": "UNLICENSED",
   "author": {
-    "name": "Ogbu Ezekiel",
-    "email": "zicozydasilva70@gmail.com"
+    "name": "Ayomitide Odunyemi",
+    "email": "ayomitide007@gmail.com"
   },
   "scripts": {
     "build": "nest build",
