@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Login to docker hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
         
       - name: Build docker image
         run: docker build -t AYOMITIDE-OAJ/jira-slack-backend-api .  
