@@ -93,6 +93,9 @@ The API documentation is provided through Swagger. Once the application is runni
   Retrieves Jira issues from Jira API.
 
 ### Data Schema Diagram
+
+![Data Schema Diagram](assets/jira_uml_diagram.PNG) ![Sequence Diagram](assets/sequence_diagram_slack_entity.PNG)
+
 Here is a simplified representation of the data schema:
 
 **SlackMessage Entity**
@@ -161,6 +164,8 @@ export const createDataSource = (configService: ConfigService) => {
 ```
 
 ### Deployment Documentation
+
+![docker deployment architecture to EC2](assets/deploying_with_docker_to_ec2.PNG)
 
 #### Dockerized EC2 Environment Setup
 
