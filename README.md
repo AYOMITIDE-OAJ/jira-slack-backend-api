@@ -53,9 +53,9 @@ To set up the project, follow these steps:
 #### Swagger
 The API documentation is provided through Swagger. Once the application is running, navigate to `/api/docs` to view interactive API documentation.
 
-You can also find the swagger doc json file here: ![swagger doc json](https://github.com/AYOMITIDE-OAJ/jira-slack-backend-api/blob/main/swagger_documentation.json)
+You can also find the swagger doc json file here: [swagger doc json](https://github.com/AYOMITIDE-OAJ/jira-slack-backend-api/blob/main/swagger_documentation.json)
 
-or the postman doc ![postman doc json](https://documenter.getpostman.com/view/19211919/2sA3kYizzE)
+or the postman doc [postman doc json](https://documenter.getpostman.com/view/19211919/2sA3kYizzE)
 
 #### Slack Controller
 - **Fetch Slack Messages**
