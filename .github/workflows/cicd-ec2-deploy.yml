@@ -1,0 +1,30 @@
+name: CI/CD EC2 Workflow
+
+on:
+  push: 
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Login to docker hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}       
+      - name: Build docker image
+        run: docker build -t AYOMITIDE-OAJ/jira-slack-backend-api .  
+      - name: Publish image to docker hub
+        run: docker push AYOMITIDE-OAJ/jira-slack-backend-api:latest
+        
+  deploy:
+    needs: build
+    runs-on: [aws-ec2]
+    steps:
+      - name: Pull image from docker hub
+        run: docker pull AYOMITIDE-OAJ/jira-slack-backend-api:latest
+      - name: Delete old container
+        run: docker rm -f nodejs-app-container 
+      - name: Run docker container
+        run: docker run -d -p 3000:3000 --name nodejs-app-container AYOMITIDE-OAJ/jira-slack-backend-api
