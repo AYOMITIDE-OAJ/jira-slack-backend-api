@@ -23,17 +23,17 @@ jobs:
         with:
           context: .
           push: true
-          tags: ayomitide-oaj/jira-slack-backend-api:latest
+          tags: ayomitideoaj/jira-slack-backend-api:latest
 
   deploy:
     needs: build
     runs-on: [aws-ec2]
     steps:
       - name: Pull image from Docker Hub
-        run: docker pull ayomitide-oaj/jira-slack-backend-api:latest
+        run: docker pull ayomitideoaj/jira-slack-backend-api:latest
 
       - name: Delete old container
         run: docker rm -f nodejs-app-container || true
 
       - name: Run Docker container
-        run: docker run -d -p 3000:3000 --name nodejs-app-container ayomitide-oaj/jira-slack-backend-api:latest
+        run: docker run -d -p 3000:3000 --name nodejs-app-container ayomitideoaj/jira-slack-backend-api:latest
